@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# MacBook
+.DS_Store
+**/.DS_Store
+.DS_Store?
