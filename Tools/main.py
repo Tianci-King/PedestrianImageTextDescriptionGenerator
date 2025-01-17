@@ -7,7 +7,8 @@ import Tools.system_prompt as system_prompt
 import time
 
 client = OpenAI(api_key="<KEY>")
-
+client.api_key = "sk-FiyzBXUHKMVGRFMp51Bf7113C36c4fB5A7D333A705Ef9dC1"
+client.base_url = "https://az.gptplus5.com/v1"
 # you can use the following code to load the API key from a .env file
 # from dotenv import load_dotenv
 # load_dotenv()
@@ -172,11 +173,10 @@ def prompt_chain(image_path, follow_up_prompts, previous_prompt=""):
 
         # One more thing!
         # Extract the main attributes from the text
-        # 如果 result 包含 none 或者 failed，就不再继续
         if "none" in result or "failed" in result:
             print(f"Step {i} features: none\n")
         else:
-            features = get_fetures(result)
+            features = get_fetures({key},result)
             print(f"Step {i} features: {features}\n")
             features_list.append(features)
 
@@ -217,26 +217,27 @@ def get_image_url(prompt_temp):
     return response.data[0].url
 
 # -------------------------------------------------------------
-def get_fetures(input_text):
+def get_fetures(key ,input_text):
     """
     Extracts features from the image analysis output.
 
     Args:
+        key: The key of the feature to extract.
         input_text (str): The output text from the image analysis.
 
     Returns:
         dict: A dictionary containing the extracted features.
     """
     prompt = f"""
-
-"task_type": "Extract the key attributes related to the appearance of the target individual or object.",
-"instructions": "Focus on describing distinct characteristics such as clothing, color, or other prominent physical features. Only output a concise phrase that encapsulates these characteristics.",
-"do": "Provide a clear, concise phrase that summarizes the key visual attributes. Do not include extra words or explanations.Output directly without any additional explanation.No line breaks, no dot breaks, no markdown.And only one Phrase.",
-"don't": "Avoid using vague descriptions like 'normal' or 'plain', and refrain from including irrelevant details like actions or non-visual features.",
+PROMPT:
+"task_type": "Extracting pedestrian features about {key}.",
+"instructions": "Extract the features({key}) of pedestrians from the FOLLOW_TEXT.Output only one phrase to describe {key}. Do not include extra words or explanations. No line breaks, no dot breaks, no markdown.And only one Phrase.",
+"do": "Provide a clear, concise phrase that summarizes the key attributes of {key}.And only one Phrase to describe {key}.Try to use the original words from the FOLLOW_TEXT",
+"don't": "Do not output verbs, only adjectives and nouns.Do not output very long sentences.Do not analyze features other than {key}. Do not include extra words or explanations.Output directly without any additional explanation.No line breaks, no dot breaks, no markdown.",
 "examples": "bright yellow dress",
-"user_context": "The user is interested in extracting the key visual features of a person or object, especially clothing or appearance-related attributes."
+"user_context": "The user is interested in extracting pedestrian features of {key}."
 
-Following text:
+FOLLOW_TEXT:
 {input_text}
     """
     attempt = 0
@@ -254,10 +255,10 @@ Following text:
                 ],
                 temperature=0,
             )
-            # 成功时返回响应
+            # successful response
             return response.choices[0].message.content
         except Exception as e:
-            print(f"尝试 {attempt + 1}/{max_retries} 时发生错误: {e} \n 继续尝试中...")
+            print(f"try {attempt + 1}/{max_retries} failed with error: {e} \n retrying...")
             attempt += 1
             if attempt < max_retries:
-                time.sleep(retry_delay)  # 可选：重试前等待一段时间
+                time.sleep(retry_delay)
