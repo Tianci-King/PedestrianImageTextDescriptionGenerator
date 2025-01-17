@@ -31,14 +31,17 @@ if __name__ == "__main__":
         # Generating pedestrian text descriptions using prompt chaining.
         print(f"----------{result_path} start----------")
         print("----------step 1----------")
-        step11 = tools.prompt_chain(image_path, prompts.prompt11)
-        step12 = tools.prompt_chain(image_path, prompts.prompt12, step11)
+        step11, step11_features = tools.prompt_chain(image_path, prompts.prompt11)
+        step12, step12_features = tools.prompt_chain(image_path, prompts.prompt12, step11)
         print("----------step 2----------")
-        step2 = tools.prompt_chain(image_path, prompts.prompt2, step12)
+        step2, step2_features = tools.prompt_chain(image_path, prompts.prompt2, step12)
         print("----------step 3----------")
-        step31 = tools.prompt_chain(image_path, prompts.prompt31, step2)
+        step31, step31_features = tools.prompt_chain(image_path, prompts.prompt31, step2)
         result = step31
         print(f"----------{result_path} end----------")
+
+        # Save the generated features to a json file.
+        features = step11_features + step12_features + step2_features + step31_features
 
         # Determine whether the pedestrian's color appears altered due to environmental lighting.
         color_dif = tools.get_image_analysis(
@@ -62,6 +65,7 @@ if __name__ == "__main__":
         data = {
             "image_name": filename,
             "description": result,
+            "features": features,
             "color_dif": color_dif,
             "image_base64": image_base64,
         }

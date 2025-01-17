@@ -1,4 +1,6 @@
 import datetime
+
+from dotenv import load_dotenv
 from openai import OpenAI
 import base64
 import Tools.system_prompt as system_prompt
@@ -13,7 +15,6 @@ client = OpenAI(api_key="<KEY>")
 # or you can set the API key and base URL directly
 # client.api_key = "your_api_key"
 # client.base_url = "your_base_url"
-
 
 # --------------------------------------------------------
 def get_chat(text_to_input):
@@ -154,6 +155,7 @@ def get_image_analysis(image_path, prompt):
 
 def prompt_chain(image_path, follow_up_prompts, previous_prompt=""):
     response = previous_prompt
+    features_list = []
 
     for i, key in enumerate(follow_up_prompts, 1):
         prompt = follow_up_prompts[key]
@@ -167,8 +169,19 @@ def prompt_chain(image_path, follow_up_prompts, previous_prompt=""):
         if result is None:
             return f"Prompt {i} failed."
         print(f"Step {i} output: {result}\n")
+
+        # One more thing!
+        # Extract the main attributes from the text
+        # 如果 result 包含 none 或者 failed，就不再继续
+        if "none" in result or "failed" in result:
+            print(f"Step {i} features: none\n")
+        else:
+            features = get_fetures(result)
+            print(f"Step {i} features: {features}\n")
+            features_list.append(features)
+
         response += f"{result}\n"
-    return response
+    return response, features_list
 
 
 # -------------------------------------------------------------
@@ -202,3 +215,49 @@ def get_image_url(prompt_temp):
     )
 
     return response.data[0].url
+
+# -------------------------------------------------------------
+def get_fetures(input_text):
+    """
+    Extracts features from the image analysis output.
+
+    Args:
+        input_text (str): The output text from the image analysis.
+
+    Returns:
+        dict: A dictionary containing the extracted features.
+    """
+    prompt = f"""
+
+"task_type": "Extract the key attributes related to the appearance of the target individual or object.",
+"instructions": "Focus on describing distinct characteristics such as clothing, color, or other prominent physical features. Only output a concise phrase that encapsulates these characteristics.",
+"do": "Provide a clear, concise phrase that summarizes the key visual attributes. Do not include extra words or explanations.Output directly without any additional explanation.No line breaks, no dot breaks, no markdown.And only one Phrase.",
+"don't": "Avoid using vague descriptions like 'normal' or 'plain', and refrain from including irrelevant details like actions or non-visual features.",
+"examples": "bright yellow dress",
+"user_context": "The user is interested in extracting the key visual features of a person or object, especially clothing or appearance-related attributes."
+
+Following text:
+{input_text}
+    """
+    attempt = 0
+    max_retries = 10000
+    retry_delay = 3
+    while attempt < max_retries:
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": prompt}],
+                    }
+                ],
+                temperature=0,
+            )
+            # 成功时返回响应
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"尝试 {attempt + 1}/{max_retries} 时发生错误: {e} \n 继续尝试中...")
+            attempt += 1
+            if attempt < max_retries:
+                time.sleep(retry_delay)  # 可选：重试前等待一段时间
