@@ -1,3 +1,7 @@
+# 第一个任务 生成文本描述 用到的 prompt 汇总
+# 注释掉的的 prompt 都是上一版本迭代前的 prompt 保留可能有作用
+# 使用 prompt chaining 每一个 chain 都是一个变量
+
 # prompt11 = {
 #     "clothing_color": "What is the color of the target pedestrian's clothing? Please specify if there are multiple colors.",
 #     "clothing_texture": "Describe the texture or pattern of the target pedestrian's clothing.",
@@ -375,11 +379,11 @@ prompt2 = {
 prompt31 = {
     "behavior": {
         "task_type": "Analyze the behavior of the pedestrian based on static attributes.",
-        "instructions": "Interpret the pedestrian's actions, gestures, and movements to describe their potential behaviors, intentions, or state of mind. Focus on static (e.g., posture)",
-        "do": "Clearly require the analysis of behavior from both a static (such as posture) perspective to more comprehensively understand the target behavior.If no clear behavioral indicators are observed, output 'This part is none'",
-        "don't": "Avoid overly broad conclusions like 'acting normally' or 'walking casually' without providing specific examples or context. Do not generalize behaviors without relevant supporting details.",
-        "examples": "Example: 'The pedestrian is walking purposefully towards a shop, occasionally glancing at a shopping list, suggesting intent to shop.' If no clear behavioral indicators are observed, output 'This part is none'",
-        "user_context": "The user is identifying behavioral patterns for situational or contextual analysis.",
+        "instructions": "Interpret the pedestrian's actions, gestures, and movements to describe their potential behaviors, intentions, or state of mind. Focus on static (e.g., posture).",
+        "do": "Clearly require the analysis of behavior from both a static (such as posture) perspective to more comprehensively understand the target behavior.Directly state the behavioral conclusion. If no clear behavioral indicators are observed, output 'This part is none'.",
+        "don't": "Do not provide lengthy explanations or describe the analysis process. ",
+        "examples": "Example: 'The pedestrian is walking purposefully towards a shop, occasionally glancing at a shopping list, suggesting intent to shop.' If no clear behavioral indicators are observed, output 'This part is none'.",
+        "user_context": "The user is identifying behavioral patterns for situational or contextual analysis."
     },
     # "behavior": {
     #     "task_type": "Analyze the behavior of the pedestrian based on static and dynamic attributes.",
@@ -400,8 +404,8 @@ prompt31 = {
     "color_difference": {
         "task_type": "Determine if the pedestrian's color appears altered due to environmental lighting.",
         "instructions": "Assess whether the pedestrian's clothing, accessories, or appearance appear different in color due to the surrounding light conditions. For example, lighting could cause colors to appear lighter, darker, or shift to a different hue. Focus on describing how the pedestrian's appearance changes due to lighting effects and whether they contrast with the environment or other pedestrians.",
-        "do": "Describe any noticeable color shifts caused by lighting, such as 'the pedestrian's red jacket looks darker due to low light' or 'the bright yellow hoodie appears much more muted under the shadow of a building.' If the lighting causes a specific contrast with the background, mention that.",
-        "don't": "Avoid generic statements about color differences without considering the impact of lighting. Do not describe the color of the pedestrian’s clothing in a way that ignores the surrounding light conditions or their direct relationship to the environment. Do not include vague or generalized conclusions like 'Overall, the pedestrian's colors do not seem altered dramatically by the lighting,' or statements about how the colors contrast moderately with the environment after detailing the changes.",
+        "do": "Describe any noticeable color shifts caused by lighting, such as 'the pedestrian's red jacket looks darker due to low light' or 'the bright yellow hoodie appears much more muted under the shadow of a building.' If the lighting causes a specific contrast with the background, mention that. Directly state the color difference conclusion.",
+        "don't": "Avoid generic statements about color differences without considering the impact of lighting. Do not describe the color of the pedestrian’s clothing in a way that ignores the surrounding light conditions or their direct relationship to the environment. Do not include vague or generalized conclusions like 'Overall, the pedestrian's colors do not seem altered dramatically by the lighting,' or statements about how the colors contrast moderately with the environment after detailing the changes.Do not provide lengthy explanations or describe the analysis process.",
         "examples": "Example: 'Under the bright streetlights, the pedestrian's white shirt appears much more vibrant than in the surrounding dim area.' Another example: 'The pedestrian's black jacket looks almost gray in the shadowed part of the street.'",
         "user_context": "The user is evaluating how environmental lighting affects the pedestrian's color perception for recognition, safety, or situational analysis.",
     },

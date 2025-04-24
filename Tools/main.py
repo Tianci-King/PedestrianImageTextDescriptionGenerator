@@ -1,7 +1,15 @@
 import datetime
+from dotenv import load_dotenv
 from openai import OpenAI
 import base64
+import sys
+import os
+from os import path
+d = path.dirname(__file__)
+parent_path = os.path.dirname(d)
+sys.path.append(parent_path)
 import Tools.system_prompt as system_prompt
+import Tools.prompt_segmentation as prompt_segmentation
 import time
 
 client = OpenAI(api_key="<KEY>")
@@ -13,7 +21,8 @@ client = OpenAI(api_key="<KEY>")
 # or you can set the API key and base URL directly
 # client.api_key = "your_api_key"
 # client.base_url = "your_base_url"
-
+client.api_key = "sk-rPGIUC6ktUTET1RcA3709cBc36F14b2eA2Fd308493B96015"
+client.base_url = "https://az.gptplus5.com/v1"
 
 # --------------------------------------------------------
 def get_chat(text_to_input):
@@ -56,7 +65,7 @@ def get_embedding(text_to_embed):
     while attempt < max_retries:
         try:
             response = client.embeddings.create(
-                model="text-embedding-ada-002", input=[text_to_embed]
+                model="text-embedding-3-small", input=[text_to_embed]
             )
             # successful response
             embedding = response.data[0].embedding
@@ -104,7 +113,7 @@ def get_image_analysis_base64(base64_image, prompt):
     while attempt < max_retries:
         try:
             response = client.chat.completions.create(
-                model="gpt-4o",  # choose the model
+                model="chatgpt-4o-latest",  # choose the model
                 messages=[
                     {
                         "role": "system",
@@ -202,3 +211,35 @@ def get_image_url(prompt_temp):
     )
 
     return response.data[0].url
+
+
+# -------------------------------------------------------------
+def get_key(text_to_input):
+    attempt = 0
+    max_retries = 10000
+    retry_delay = 1
+    while attempt < max_retries:
+        try:
+            response = client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": prompt_segmentation.system_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": [{"type": "text", "text": text_to_input}],
+                    },
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.05,
+            )
+
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"try {attempt + 1}/{max_retries} failed with error {e} \n retrying...")
+            attempt += 1
+            if attempt < max_retries:
+                time.sleep(retry_delay)  # 可选：重试前等待一段时间
+
